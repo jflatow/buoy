@@ -1,0 +1,4 @@
+%% -*- erlang -*-
+{application, buoy,
+ [{vsn, []},
+  {applications, [kernel, stdlib]}]}.
