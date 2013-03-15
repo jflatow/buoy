@@ -22,7 +22,7 @@ Lexi_learn(PyObject *self, PyObject *args)
   Tok tok = {0, 0};
   Real delta, score;
 
-  if (!PyArg_ParseTuple(args, "Os#lld", &pybuoy, &doc.bytes, &doc.length, &tok.start, &tok.end, &score))
+  if (!PyArg_ParseTuple(args, "Os#kkd", &pybuoy, &doc.bytes, &doc.length, &tok.start, &tok.end, &score))
     goto Done;
 
   if (!PyObject_IsInstance((PyObject *)pybuoy, (PyObject *)&PyBuoyType)) {
@@ -46,7 +46,7 @@ Lexi_score(PyObject *self, PyObject *args)
   Tok tok = {0, 0};
   Real score;
 
-  if (!PyArg_ParseTuple(args, "Os#ll", &pybuoy, &doc.bytes, &doc.length, &tok.start, &tok.end))
+  if (!PyArg_ParseTuple(args, "Os#kk", &pybuoy, &doc.bytes, &doc.length, &tok.start, &tok.end))
     goto Done;
 
   score = lexi_score(pybuoy->buoy, &doc, &tok);

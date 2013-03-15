@@ -14,11 +14,13 @@ REBAR = rebar
 alex:	alex.c buoy.o lexi.o
 	$(CC) $(CFLAGS) -o $@ $^
 
+erlang: CMD = compile
 erlang:
-	(cd erlang && $(REBAR) compile)
+	(cd erlang && $(REBAR) $(CMD))
 
+python: CMD = build
 python:
-	(cd python && python setup.py build)
+	(cd python && python setup.py $(CMD))
 
 clean:
 	rm -rf `find . -name \*.o`

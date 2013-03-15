@@ -4,10 +4,11 @@
 #ifndef BUOY_H
 #define BUOY_H
 
-typedef unsigned char bool;
-typedef unsigned char byte;
-typedef unsigned long Size;
-typedef double Real;
+#include <stdint.h>
+
+typedef uint8_t  byte;
+typedef uint64_t Size;
+typedef double   Real;
 
 typedef struct {
   byte length;

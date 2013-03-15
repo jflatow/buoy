@@ -7,11 +7,11 @@
 #include "lexi.h"
 
 int buoy_info(Buoy *buoy) {
-  fprintf(stderr, "size:    \t%8lu\n", buoy->size);
-  fprintf(stderr, "capacity:\t%8lu\n", buoy->capacity);
+  fprintf(stderr, "size:    \t%8llu\n", buoy->size);
+  fprintf(stderr, "capacity:\t%8llu\n", buoy->capacity);
   fprintf(stderr, "\e[?25l");
   for (Size i = 0; i < buoy->capacity; i++)
-    fprintf(stderr, "\ritem:    \t%8lu\t%3d\t%.3f", i, buoy->items[i].attr.length, buoy->items[i].weight);
+    fprintf(stderr, "\ritem:    \t%8llu\t%3d\t%.3f", i, buoy->items[i].attr.length, buoy->items[i].weight);
   fprintf(stderr, "\e[?25h\n");
   return 0;
 }
@@ -95,14 +95,14 @@ int spin(int argc, char **argv) {
   Doc doc;
   if (!lexi_read(&doc, 0))
     return 1;
-  fprintf(stderr, "document length: %lu\n", doc.length);
+  fprintf(stderr, "document length: %llu\n", doc.length);
   fprintf(stderr, "\e[?25l");
   for (Pos start = 0; start < doc.length; start++) {
     for (int size = min; size < max; size++) {
       Pos end = start + size;
       Tok tok = {.start = start, .end = end > doc.length ? doc.length : end};
       double delta = lexi_learn(buoy, &doc, &tok, size);
-      fprintf(stderr, "\rlearn: %8lu\t%.3f", start, delta);
+      fprintf(stderr, "\rlearn: %8llu\t%.3f", start, delta);
     }
   }
   fprintf(stderr, "\n");
@@ -111,7 +111,7 @@ int spin(int argc, char **argv) {
       Pos end = start + size;
       Tok tok = {.start = start, .end = end > doc.length ? doc.length : end};
       double score = lexi_score(buoy, &doc, &tok);
-      fprintf(stderr, "\rscore: %8lu\t%.3f\t(%d)", start, score, size);
+      fprintf(stderr, "\rscore: %8llu\t%.3f\t(%d)", start, score, size);
     }
   }
   fprintf(stderr, "\e[?25h\n");

@@ -153,9 +153,9 @@ ErlLexi_learn_async(ErlBuoy *buoy, Message *msg) {
     goto badarg;
   if (!enif_inspect_iolist_as_binary(msg->env, args[0], &docbin))
     goto badarg;
-  if (!enif_get_ulong(msg->env, args[1], &tok.start))
+  if (!enif_get_uint64(msg->env, args[1], &tok.start))
     goto badarg;
-  if (!enif_get_ulong(msg->env, args[2], &tok.end))
+  if (!enif_get_uint64(msg->env, args[2], &tok.end))
     goto badarg;
   if (!enif_get_double(msg->env, args[3], &score))
     goto badarg;
@@ -178,9 +178,9 @@ ErlLexi_score_async(ErlBuoy *buoy, Message *msg) {
     goto badarg;
   if (!enif_inspect_iolist_as_binary(msg->env, args[0], &docbin))
     goto badarg;
-  if (!enif_get_ulong(msg->env, args[1], &tok.start))
+  if (!enif_get_uint64(msg->env, args[1], &tok.start))
     goto badarg;
-  if (!enif_get_ulong(msg->env, args[2], &tok.end))
+  if (!enif_get_uint64(msg->env, args[2], &tok.end))
     goto badarg;
   doc.bytes = docbin.data;
   doc.length = docbin.size;

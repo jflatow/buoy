@@ -6,7 +6,7 @@
 
 #include "buoy.h"
 
-typedef unsigned long Pos;
+typedef Size Pos;
 
 typedef struct {
   Size length;
