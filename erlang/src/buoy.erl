@@ -117,9 +117,14 @@ moor(Buoy, Filename, none, [{From, Args}|Pending]) ->
          spawn_link(fun () ->
                             case train(copy(Buoy), Args) of
                                 {ok, Copy, Iter} ->
-                                    Moor ! {ready, From, self(), save(Copy, Filename), Iter};
+                                    case save(Copy, Filename) of
+                                        Copy ->
+                                            Moor ! {ready, From, self(), Copy, Iter};
+                                        Else ->
+                                            Moor ! {error, From, self(), Copy, Else}
+                                    end;
                                 {error, Lessons} ->
-                                    Moor ! {error, From, self(), Buoy, Lessons}
+                                    Moor ! {stuck, From, self(), Buoy, Lessons}
                             end
                     end),
          Pending);
@@ -128,12 +133,15 @@ moor(Buoy, Filename, Trainer, Pending) ->
         {buoy, From} ->
             From ! {buoy, Buoy},
             moor(Buoy, Filename, Trainer, Pending);
-        {error, From, Trainer, Buoy, Lessons} ->
-            From ! {buoy_error, Buoy, Lessons},
-            moor(Buoy, Filename, none, Pending);
+        {error, From, Trainer, Buoy, Error} ->
+            From ! {buoy_error, Buoy, Error},
+            exit({buoy_error, Buoy, Error});
         {ready, From, Trainer, NewBuoy, Iter} ->
             From ! {buoy_ready, NewBuoy, Iter},
             moor(NewBuoy, Filename, none, Pending);
+        {stuck, From, Trainer, Buoy, Lessons} ->
+            From ! {buoy_stuck, Buoy, Lessons},
+            moor(Buoy, Filename, none, Pending);
         {train, From, Args} ->
             moor(Buoy, Filename, Trainer, [{From, Args}|Pending]);
         stop ->
