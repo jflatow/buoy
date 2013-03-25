@@ -9,25 +9,33 @@
 
 /* Static Erlang Terms */
 
-#define ATOM(Id, Value) { Id = enif_make_atom(env, Value); }
+#define ATOM(Val) (enif_make_atom(env, Val))
+#define PAIR(A, B) (enif_make_tuple2(env, A, B))
 #define TERM_EQ(lhs, rhs) (enif_compare(lhs, rhs) == 0)
 
-static ERL_NIF_TERM ATOM_OK;
-static ERL_NIF_TERM ATOM_BADARG;
-static ERL_NIF_TERM ATOM_EALLOC;
-static ERL_NIF_TERM ATOM_ECREAT;
-static ERL_NIF_TERM ATOM_ERROR;
+#define ATOM_OK                  ATOM("ok")
+#define ATOM_BADARG              ATOM("badarg")
+#define ATOM_EALLOC              ATOM("ealloc")
+#define ATOM_ECREAT              ATOM("ecreat")
+#define ATOM_ERROR               ATOM("error")
+#define ATOM_NO                  ATOM("no")
 
-static ERL_NIF_TERM ATOM_BUOY_NEW;
-static ERL_NIF_TERM ATOM_BUOY_COPY;
-static ERL_NIF_TERM ATOM_BUOY_OPEN;
-static ERL_NIF_TERM ATOM_BUOY_SAVE;
-static ERL_NIF_TERM ATOM_BUOY_FETCH;
-static ERL_NIF_TERM ATOM_BUOY_STORE;
-static ERL_NIF_TERM ATOM_DOXI_LEARN;
-static ERL_NIF_TERM ATOM_DOXI_SCORE;
-static ERL_NIF_TERM ATOM_LEXI_LEARN;
-static ERL_NIF_TERM ATOM_LEXI_SCORE;
+#define ATOM_BUOY_NEW            ATOM("buoy_new")
+#define ATOM_BUOY_COPY           ATOM("buoy_copy")
+#define ATOM_BUOY_OPEN           ATOM("buoy_open")
+#define ATOM_BUOY_SAVE           ATOM("buoy_save")
+#define ATOM_BUOY_FETCH          ATOM("buoy_fetch")
+#define ATOM_BUOY_STORE          ATOM("buoy_store")
+#define ATOM_BUOY_LEARN          ATOM("buoy_learn")
+#define ATOM_BUOY_SCORE          ATOM("buoy_score")
+#define ATOM_DOXI_LEARN          ATOM("doxi_learn")
+#define ATOM_DOXI_SCORE          ATOM("doxi_score")
+#define ATOM_LEXI_LEARN          ATOM("lexi_learn")
+#define ATOM_LEXI_SCORE          ATOM("lexi_score")
+
+#define ERROR_BADARG             PAIR(ATOM_ERROR, ATOM_BADARG)
+#define ERROR_EALLOC             PAIR(ATOM_ERROR, ATOM_EALLOC)
+#define ERROR_ECREAT             PAIR(ATOM_ERROR, ATOM_ECREAT)
 
 /* Buoy Types */
 
@@ -108,186 +116,249 @@ Message_new(ErlNifEnv *env, ErlBuoyFn func, ERL_NIF_TERM term) {
 
 static ERL_NIF_TERM
 ErlDoxi_learn_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
   int arity;
   const ERL_NIF_TERM *args;
   ErlNifBinary docbin;
   Doc doc;
   Real score;
-  if (!enif_get_tuple(msg->env, msg->term, &arity, &args) || arity != 2)
+  if (!enif_get_tuple(env, msg->term, &arity, &args) || arity != 2)
     goto badarg;
-  if (!enif_inspect_iolist_as_binary(msg->env, args[0], &docbin))
+  if (!enif_inspect_iolist_as_binary(env, args[0], &docbin))
     goto badarg;
-  if (!enif_get_double(msg->env, args[1], &score))
+  if (!enif_get_double(env, args[1], &score))
     goto badarg;
   doc.bytes = docbin.data;
   doc.length = docbin.size;
-  return enif_make_double(msg->env, doxi_learn(buoy->buoy, &doc, score));
+  return enif_make_double(env, doxi_learn(buoy->buoy, &doc, score));
 
  badarg:
-  return enif_make_tuple2(msg->env, ATOM_ERROR, ATOM_BADARG);
+  return ERROR_BADARG;
 }
 
 static ERL_NIF_TERM
 ErlDoxi_score_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
   ErlNifBinary docbin;
   Doc doc;
-  if (!enif_inspect_iolist_as_binary(msg->env, msg->term, &docbin))
+  if (!enif_inspect_iolist_as_binary(env, msg->term, &docbin))
     goto badarg;
   doc.bytes = docbin.data;
   doc.length = docbin.size;
-  return enif_make_double(msg->env, doxi_score(buoy->buoy, &doc));
+  return enif_make_double(env, doxi_score(buoy->buoy, &doc));
 
  badarg:
-  return enif_make_tuple2(msg->env, ATOM_ERROR, ATOM_BADARG);
+  return ERROR_BADARG;
 }
 
 static ERL_NIF_TERM
 ErlLexi_learn_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
   int arity;
   const ERL_NIF_TERM *args;
   ErlNifBinary docbin;
   Doc doc;
   Tok tok;
   Real score;
-  if (!enif_get_tuple(msg->env, msg->term, &arity, &args) || arity != 4)
+  if (!enif_get_tuple(env, msg->term, &arity, &args) || arity != 4)
     goto badarg;
-  if (!enif_inspect_iolist_as_binary(msg->env, args[0], &docbin))
+  if (!enif_inspect_iolist_as_binary(env, args[0], &docbin))
     goto badarg;
-  if (!enif_get_uint64(msg->env, args[1], &tok.start))
+  if (!enif_get_uint64(env, args[1], &tok.start))
     goto badarg;
-  if (!enif_get_uint64(msg->env, args[2], &tok.end))
+  if (!enif_get_uint64(env, args[2], &tok.end))
     goto badarg;
-  if (!enif_get_double(msg->env, args[3], &score))
+  if (!enif_get_double(env, args[3], &score))
     goto badarg;
   doc.bytes = docbin.data;
   doc.length = docbin.size;
-  return enif_make_double(msg->env, lexi_learn(buoy->buoy, &doc, &tok, score));
+  return enif_make_double(env, lexi_learn(buoy->buoy, &doc, &tok, score));
 
  badarg:
-  return enif_make_tuple2(msg->env, ATOM_ERROR, ATOM_BADARG);
+  return ERROR_BADARG;
 }
 
 static ERL_NIF_TERM
 ErlLexi_score_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
   int arity;
   const ERL_NIF_TERM *args;
   ErlNifBinary docbin;
   Doc doc;
   Tok tok;
-  if (!enif_get_tuple(msg->env, msg->term, &arity, &args) || arity != 3)
+  if (!enif_get_tuple(env, msg->term, &arity, &args) || arity != 3)
     goto badarg;
-  if (!enif_inspect_iolist_as_binary(msg->env, args[0], &docbin))
+  if (!enif_inspect_iolist_as_binary(env, args[0], &docbin))
     goto badarg;
-  if (!enif_get_uint64(msg->env, args[1], &tok.start))
+  if (!enif_get_uint64(env, args[1], &tok.start))
     goto badarg;
-  if (!enif_get_uint64(msg->env, args[2], &tok.end))
+  if (!enif_get_uint64(env, args[2], &tok.end))
     goto badarg;
   doc.bytes = docbin.data;
   doc.length = docbin.size;
-  return enif_make_double(msg->env, lexi_score(buoy->buoy, &doc, &tok));
+  return enif_make_double(env, lexi_score(buoy->buoy, &doc, &tok));
 
  badarg:
-  return enif_make_tuple2(msg->env, ATOM_ERROR, ATOM_BADARG);
+  return ERROR_BADARG;
 }
 
 static ERL_NIF_TERM
 ErlBuoy_new_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
   if (!(buoy->buoy = buoy_new()))
-    return enif_make_tuple2(msg->env, ATOM_ERROR, ATOM_ECREAT);
+    return ERROR_ECREAT;
   return ATOM_OK;
 }
 
 static ERL_NIF_TERM
 ErlBuoy_copy_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
   ErlBuoy *orig;
-  if (!enif_get_resource(msg->env, msg->term, ErlBuoyType, (void **)&orig) || !orig->buoy)
-    return enif_make_tuple2(msg->env, ATOM_ERROR, ATOM_BADARG);
+  if (!enif_get_resource(env, msg->term, ErlBuoyType, (void **)&orig) || !orig->buoy)
+    return ERROR_BADARG;
   if (!(buoy->buoy = buoy_copy(orig->buoy)))
-    return enif_make_tuple2(msg->env, ATOM_ERROR, ATOM_ECREAT);
+    return ERROR_ECREAT;
   return ATOM_OK;
 }
 
 static ERL_NIF_TERM
 ErlBuoy_open_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
   unsigned size;
-  if (enif_get_list_length(msg->env, msg->term, &size)) {
+  if (enif_get_list_length(env, msg->term, &size)) {
     char buf[size + 1];
-    if (!enif_get_string(msg->env, msg->term, buf, size + 1, ERL_NIF_LATIN1))
+    if (!enif_get_string(env, msg->term, buf, size + 1, ERL_NIF_LATIN1))
       goto badarg;
     int fd = open(buf, O_RDONLY);
     if (fd < 0)
-      return enif_make_tuple2(msg->env, ATOM_ERROR, enif_make_atom(msg->env, errno_id(errno)));
+      return enif_make_tuple2(env, ATOM_ERROR, enif_make_atom(env, errno_id(errno)));
     if (!(buoy->buoy = buoy_load(fd))) {
       close(fd);
-      return enif_make_tuple2(msg->env, ATOM_ERROR, ATOM_ECREAT);
+      return ERROR_ECREAT;
     }
     close(fd);
     return ATOM_OK;
   }
 
  badarg:
-  return enif_make_tuple2(msg->env, ATOM_ERROR, ATOM_BADARG);
+  return ERROR_BADARG;
 }
 
 static ERL_NIF_TERM
 ErlBuoy_save_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
   unsigned size;
-  if (enif_get_list_length(msg->env, msg->term, &size)) {
+  if (enif_get_list_length(env, msg->term, &size)) {
     char buf[size + 1];
-    if (!enif_get_string(msg->env, msg->term, buf, size + 1, ERL_NIF_LATIN1))
+    if (!enif_get_string(env, msg->term, buf, size + 1, ERL_NIF_LATIN1))
       goto badarg;
     int fd = open(buf, O_WRONLY | O_CREAT, 0644);
     if (fd < 0)
-      return enif_make_tuple2(msg->env, ATOM_ERROR, enif_make_atom(msg->env, errno_id(errno)));
+      return enif_make_tuple2(env, ATOM_ERROR, enif_make_atom(env, errno_id(errno)));
     if (!(buoy_dump(buoy->buoy, fd))) {
       close(fd);
-      return enif_make_tuple2(msg->env, ATOM_ERROR, enif_make_atom(msg->env, errno_id(errno)));
+      return enif_make_tuple2(env, ATOM_ERROR, enif_make_atom(env, errno_id(errno)));
     }
     close(fd);
     return ATOM_OK;
   }
 
  badarg:
-  return enif_make_tuple2(msg->env, ATOM_ERROR, ATOM_BADARG);
+  return ERROR_BADARG;
 }
 
 static ERL_NIF_TERM
 ErlBuoy_fetch_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
   ErlNifBinary attrbin;
   Attr attr;
-  if (!enif_inspect_iolist_as_binary(msg->env, msg->term, &attrbin))
+  if (!enif_inspect_iolist_as_binary(env, msg->term, &attrbin))
     goto badarg;
   if (attrbin.size > AttrMaxLen)
     goto badarg;
   attr.bytes = attrbin.data;
   attr.length = attrbin.size;
-  return enif_make_double(msg->env, buoy_fetch(buoy->buoy, &attr));
+  return enif_make_double(env, buoy_fetch(buoy->buoy, &attr));
 
  badarg:
-  return enif_make_tuple2(msg->env, ATOM_ERROR, ATOM_BADARG);
+  return ERROR_BADARG;
 }
 
 static ERL_NIF_TERM
 ErlBuoy_store_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
   int arity;
   const ERL_NIF_TERM *args;
   ErlNifBinary attrbin;
   Attr attr;
   Real weight;
-  if (!enif_get_tuple(msg->env, msg->term, &arity, &args) || arity != 2)
+  if (!enif_get_tuple(env, msg->term, &arity, &args) || arity != 2)
     goto badarg;
-  if (!enif_inspect_iolist_as_binary(msg->env, args[0], &attrbin))
+  if (!enif_inspect_iolist_as_binary(env, args[0], &attrbin))
     goto badarg;
-  if (!enif_get_double(msg->env, args[1], &weight))
+  if (!enif_get_double(env, args[1], &weight))
     goto badarg;
   if (attrbin.size > AttrMaxLen)
     goto badarg;
   attr.bytes = attrbin.data;
   attr.length = attrbin.size;
-  return enif_make_double(msg->env, buoy_store(buoy->buoy, &attr, weight));
+  return enif_make_double(env, buoy_store(buoy->buoy, &attr, weight));
 
  badarg:
-  return enif_make_tuple2(msg->env, ATOM_ERROR, ATOM_BADARG);
+  return ERROR_BADARG;
+}
+
+static ERL_NIF_TERM
+ErlBuoy_learn_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
+
+  int arity;
+  const ERL_NIF_TERM *args;
+  if (!enif_get_tuple(env, msg->term, &arity, &args) || arity != 2)
+    return ERROR_BADARG;
+
+  ERL_NIF_TERM feature, features = args[0];
+  ErlNifBinary featbin;
+  unsigned nattrs;
+  if (!enif_get_list_length(env, args[0], &nattrs))
+    return ERROR_BADARG;
+
+  Real score;
+  if (!enif_get_double(env, args[1], &score))
+    return ERROR_BADARG;
+
+  Size k = 0;
+  Attr attrs[nattrs];
+  Attr *attrp[nattrs];
+  for (k = 0; enif_get_list_cell(env, features, &feature, &features); k++) {
+    if (!enif_inspect_iolist_as_binary(env, feature, &featbin))
+      return ERROR_BADARG;
+    attrs[k] = (Attr) {.bytes = featbin.data, .length = featbin.size};
+    attrp[k] = &attrs[k];
+  }
+  return enif_make_double(env, buoy_learn(buoy->buoy, attrp, nattrs, score));
+}
+
+static ERL_NIF_TERM
+ErlBuoy_score_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
+
+  ERL_NIF_TERM feature, features = msg->term;
+  ErlNifBinary featbin;
+  unsigned nattrs;
+  if (!enif_get_list_length(env, features, &nattrs))
+    return ERROR_BADARG;
+
+  Size k;
+  Attr attrs[nattrs];
+  Attr *attrp[nattrs];
+  for (k = 0; enif_get_list_cell(env, features, &feature, &features); k++) {
+    if (!enif_inspect_iolist_as_binary(env, feature, &featbin))
+      return ERROR_BADARG;
+    attrs[k] = (Attr) {.bytes = featbin.data, .length = featbin.size};
+    attrp[k] = &attrs[k];
+  }
+  return enif_make_double(env, buoy_score(buoy->buoy, attrp, nattrs));
 }
 
 static void *
@@ -332,7 +403,7 @@ static ERL_NIF_TERM
 ErlBuoy_init(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   ErlBuoy *buoy;
   if (!(buoy = ErlBuoy_start(env)))
-    return enif_make_tuple2(env, ATOM_ERROR, ATOM_EALLOC);
+    return ERROR_EALLOC;
   if (TERM_EQ(argv[0], ATOM_BUOY_NEW))
     queue_push(buoy->msgs, Message_new(env, &ErlBuoy_new_async, argv[1]));
   else if (TERM_EQ(argv[0], ATOM_BUOY_COPY))
@@ -341,7 +412,7 @@ ErlBuoy_init(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     queue_push(buoy->msgs, Message_new(env, &ErlBuoy_open_async, argv[1]));
   else {
     enif_release_resource(buoy);
-    return enif_make_tuple2(env, ATOM_ERROR, ATOM_BADARG);
+    return ERROR_BADARG;
   }
   return make_reference(env, buoy);
 }
@@ -357,6 +428,10 @@ ErlBuoy_call(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     queue_push(buoy->msgs, Message_new(env, &ErlBuoy_fetch_async, argv[2]));
   else if (TERM_EQ(argv[1], ATOM_BUOY_STORE))
     queue_push(buoy->msgs, Message_new(env, &ErlBuoy_store_async, argv[2]));
+  else if (TERM_EQ(argv[1], ATOM_BUOY_LEARN))
+    queue_push(buoy->msgs, Message_new(env, &ErlBuoy_learn_async, argv[2]));
+  else if (TERM_EQ(argv[1], ATOM_BUOY_SCORE))
+    queue_push(buoy->msgs, Message_new(env, &ErlBuoy_score_async, argv[2]));
   else if (TERM_EQ(argv[1], ATOM_DOXI_LEARN))
     queue_push(buoy->msgs, Message_new(env, &ErlDoxi_learn_async, argv[2]));
   else if (TERM_EQ(argv[1], ATOM_DOXI_SCORE))
@@ -370,7 +445,7 @@ ErlBuoy_call(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   return argv[0];
 
  badarg:
-  return enif_make_tuple2(env, ATOM_ERROR, ATOM_BADARG);
+  return ERROR_BADARG;
 }
 
 static void
@@ -403,24 +478,6 @@ on_load(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM load_info) {
   ErlBuoyType = enif_open_resource_type(env, NULL, "buoy", &ErlBuoy_free, flags, NULL);
   if (ErlBuoyType == NULL)
     return -1;
-
-  ATOM(ATOM_OK, "ok");
-  ATOM(ATOM_BADARG, "badarg");
-  ATOM(ATOM_EALLOC, "ealloc");
-  ATOM(ATOM_ECREAT, "ecreat");
-  ATOM(ATOM_ERROR, "error");
-
-  ATOM(ATOM_BUOY_NEW, "buoy_new");
-  ATOM(ATOM_BUOY_COPY, "buoy_copy");
-  ATOM(ATOM_BUOY_OPEN, "buoy_open");
-  ATOM(ATOM_BUOY_SAVE, "buoy_save");
-  ATOM(ATOM_BUOY_FETCH, "buoy_fetch");
-  ATOM(ATOM_BUOY_STORE, "buoy_store");
-  ATOM(ATOM_DOXI_LEARN, "doxi_learn");
-  ATOM(ATOM_DOXI_SCORE, "doxi_score");
-  ATOM(ATOM_LEXI_LEARN, "lexi_learn");
-  ATOM(ATOM_LEXI_SCORE, "lexi_score");
-
   return 0;
 }
 

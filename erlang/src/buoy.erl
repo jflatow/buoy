@@ -66,11 +66,15 @@ fetch(Buoy, Attr) ->
 store(Buoy, Attr, Weight) ->
     call(Buoy, buoy_store, {Attr, float(Weight)}).
 
+learn(Buoy, Features, Score) when is_list(Features) ->
+    call(Buoy, buoy_learn, {Features, float(Score)});
 learn(Buoy, {Doc, {Start, End}}, Score) ->
     call(Buoy, lexi_learn, {Doc, Start, End, float(Score)});
 learn(Buoy, Doc, Score) ->
     call(Buoy, doxi_learn, {Doc, float(Score)}).
 
+score(Buoy, Features) when is_list(Features) ->
+    call(Buoy, buoy_score, Features);
 score(Buoy, {Doc, {Start, End}}) ->
     call(Buoy, lexi_score, {Doc, Start, End});
 score(Buoy, Doc) ->

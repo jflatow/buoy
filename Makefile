@@ -26,4 +26,4 @@ clean:
 	rm -rf `find . -name \*.o`
 	rm -rf alex
 	rm -rf python/build
-	rm -rf erlang/ebin
+	rm -rf erlang/ebin erlang/priv
