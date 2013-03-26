@@ -51,6 +51,9 @@ Buoy *buoy_grow(Buoy *buoy) {
 }
 
 Buoy *buoy_dump(Buoy *buoy, int fd) {
+  Size magic = BUOY_MAGIC;
+  if (write(fd, &magic, sizeof(magic)) < 0)
+    return NULL;
   if (write(fd, buoy, sizeof(Buoy)) < 0)
     return NULL;
 
@@ -71,7 +74,9 @@ Buoy *buoy_dump(Buoy *buoy, int fd) {
 
 Buoy *buoy_load(int fd) {
   Buoy *buoy = calloc(sizeof(Buoy), 1);
-
+  Size magic = 0;
+  if (read(fd, &magic, sizeof(magic)) < 0 || magic != BUOY_MAGIC)
+    goto eprem;
   if (read(fd, buoy, sizeof(Buoy)) < 0)
     goto eprem;
   if (buoy->capacity < 1)

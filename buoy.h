@@ -4,6 +4,8 @@
 #ifndef BUOY_H
 #define BUOY_H
 
+#define BUOY_MAGIC 0xB40709A61C007F12
+
 #include <stdint.h>
 
 typedef uint8_t  byte;
