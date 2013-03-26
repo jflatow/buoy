@@ -24,6 +24,7 @@
 #define ATOM_BUOY_COPY           ATOM("buoy_copy")
 #define ATOM_BUOY_OPEN           ATOM("buoy_open")
 #define ATOM_BUOY_SAVE           ATOM("buoy_save")
+#define ATOM_BUOY_ATTRS          ATOM("buoy_attrs")
 #define ATOM_BUOY_FETCH          ATOM("buoy_fetch")
 #define ATOM_BUOY_STORE          ATOM("buoy_store")
 #define ATOM_BUOY_LEARN          ATOM("buoy_learn")
@@ -268,6 +269,18 @@ ErlBuoy_save_async(ErlBuoy *buoy, Message *msg) {
 }
 
 static ERL_NIF_TERM
+ErlBuoy_attrs_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
+  ERL_NIF_TERM attrs = enif_make_list(env, 0);
+  for (Size i = 0; i < buoy->buoy->capacity; i++) {
+    Attr *attr = &buoy->buoy->items[i].attr;
+    if (attr->bytes)
+      attrs = enif_make_list_cell(env, enif_make_resource_binary(env, buoy, attr->bytes, attr->length), attrs);
+  }
+  return attrs;
+}
+
+static ERL_NIF_TERM
 ErlBuoy_fetch_async(ErlBuoy *buoy, Message *msg) {
   ErlNifEnv *env = msg->env;
   ErlNifBinary attrbin;
@@ -424,6 +437,8 @@ ErlBuoy_call(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     goto badarg;
   if (TERM_EQ(argv[1], ATOM_BUOY_SAVE))
     queue_push(buoy->msgs, Message_new(env, &ErlBuoy_save_async, argv[2]));
+  else if (TERM_EQ(argv[1], ATOM_BUOY_ATTRS))
+    queue_push(buoy->msgs, Message_new(env, &ErlBuoy_attrs_async, argv[2]));
   else if (TERM_EQ(argv[1], ATOM_BUOY_FETCH))
     queue_push(buoy->msgs, Message_new(env, &ErlBuoy_fetch_async, argv[2]));
   else if (TERM_EQ(argv[1], ATOM_BUOY_STORE))

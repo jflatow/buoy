@@ -4,6 +4,7 @@
          buoy/1,
          copy/1,
          save/2,
+         attrs/1,
          fetch/2,
          store/3,
          learn/3,
@@ -59,6 +60,9 @@ copy(Buoy) ->
 
 save(Buoy, Filename) ->
     call(Buoy, buoy_save, str(Filename)).
+
+attrs(Buoy) ->
+    call(Buoy, buoy_attrs, []).
 
 fetch(Buoy, Attr) ->
     call(Buoy, buoy_fetch, Attr).
