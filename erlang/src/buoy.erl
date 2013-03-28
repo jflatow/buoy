@@ -106,15 +106,21 @@ train(_, {Lessons, _, _}, _) ->
 
 moor(Filename) ->
     Owner = self(),
-    _Init = spawn_link(fun () -> Owner ! buoy(Filename) end),
-    receive
-        Buoy when is_binary(Buoy) ->
-            spawn_link(fun () -> moor(Buoy, Filename, none, []) end);
-        {error, enoent} ->
-            spawn_link(fun () -> moor(buoy(), Filename, none, []) end);
-        Error ->
-            Error
-    end.
+    _Init = spawn_link(fun () -> Owner ! {buoy, buoy(Filename)} end),
+    Wait = fun () ->
+                   receive
+                       {buoy, Buoy} when is_binary(Buoy) ->
+                           spawn_link(fun () -> moor(Buoy, Filename, none, []) end);
+                       {buoy, {error, enoent}} ->
+                           spawn_link(fun () -> moor(buoy(), Filename, none, []) end);
+                       {buoy, Error} ->
+                           Error;
+                       Else ->
+                           self() ! Else,
+                           Wait()
+                   end
+           end,
+    Wait().
 
 moor(Buoy, Filename, none, [{From, Args}|Pending]) ->
     Moor = self(),
