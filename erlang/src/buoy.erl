@@ -23,15 +23,21 @@ str(Bin) when is_binary(Bin) ->
 str(Str) when is_list(Str) ->
     Str.
 
+wait(Buoy) ->
+    receive
+        {buoy, ok} ->
+            Buoy;
+        {buoy, Reply} ->
+            Reply;
+        Else ->
+            self() ! Else,
+            wait(Buoy)
+    end.
+
 init(Func, Args) ->
     case buoy_nif:init(Func, Args) of
         Buoy when is_binary(Buoy) ->
-            receive
-                ok ->
-                    Buoy;
-                Reply ->
-                    Reply
-            end;
+            wait(Buoy);
         Error ->
             Error
     end.
@@ -39,12 +45,7 @@ init(Func, Args) ->
 call(Buoy, Method, Args) ->
     case buoy_nif:call(Buoy, Method, Args) of
         Buoy ->
-            receive
-                ok ->
-                    Buoy;
-                Reply ->
-                    Reply
-            end;
+            wait(Buoy);
         Error ->
             Error
     end.

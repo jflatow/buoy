@@ -12,6 +12,7 @@
 #define ATOM(Val) (enif_make_atom(env, Val))
 #define PAIR(A, B) (enif_make_tuple2(env, A, B))
 #define TERM_EQ(lhs, rhs) (enif_compare(lhs, rhs) == 0)
+#define ASYNC(R) (PAIR(ATOM_BUOY, R))
 
 #define ATOM_OK                  ATOM("ok")
 #define ATOM_BADARG              ATOM("badarg")
@@ -20,6 +21,7 @@
 #define ATOM_ERROR               ATOM("error")
 #define ATOM_NO                  ATOM("no")
 
+#define ATOM_BUOY                ATOM("buoy")
 #define ATOM_BUOY_NEW            ATOM("buoy_new")
 #define ATOM_BUOY_COPY           ATOM("buoy_copy")
 #define ATOM_BUOY_OPEN           ATOM("buoy_open")
@@ -131,10 +133,10 @@ ErlDoxi_learn_async(ErlBuoy *buoy, Message *msg) {
     goto badarg;
   doc.bytes = docbin.data;
   doc.length = docbin.size;
-  return enif_make_double(env, doxi_learn(buoy->buoy, &doc, score));
+  return ASYNC(enif_make_double(env, doxi_learn(buoy->buoy, &doc, score)));
 
  badarg:
-  return ERROR_BADARG;
+  return ASYNC(ERROR_BADARG);
 }
 
 static ERL_NIF_TERM
@@ -146,10 +148,10 @@ ErlDoxi_score_async(ErlBuoy *buoy, Message *msg) {
     goto badarg;
   doc.bytes = docbin.data;
   doc.length = docbin.size;
-  return enif_make_double(env, doxi_score(buoy->buoy, &doc));
+  return ASYNC(enif_make_double(env, doxi_score(buoy->buoy, &doc)));
 
  badarg:
-  return ERROR_BADARG;
+  return ASYNC(ERROR_BADARG);
 }
 
 static ERL_NIF_TERM
@@ -173,10 +175,10 @@ ErlLexi_learn_async(ErlBuoy *buoy, Message *msg) {
     goto badarg;
   doc.bytes = docbin.data;
   doc.length = docbin.size;
-  return enif_make_double(env, lexi_learn(buoy->buoy, &doc, &tok, score));
+  return ASYNC(enif_make_double(env, lexi_learn(buoy->buoy, &doc, &tok, score)));
 
  badarg:
-  return ERROR_BADARG;
+  return ASYNC(ERROR_BADARG);
 }
 
 static ERL_NIF_TERM
@@ -197,18 +199,18 @@ ErlLexi_score_async(ErlBuoy *buoy, Message *msg) {
     goto badarg;
   doc.bytes = docbin.data;
   doc.length = docbin.size;
-  return enif_make_double(env, lexi_score(buoy->buoy, &doc, &tok));
+  return ASYNC(enif_make_double(env, lexi_score(buoy->buoy, &doc, &tok)));
 
  badarg:
-  return ERROR_BADARG;
+  return ASYNC(ERROR_BADARG);
 }
 
 static ERL_NIF_TERM
 ErlBuoy_new_async(ErlBuoy *buoy, Message *msg) {
   ErlNifEnv *env = msg->env;
   if (!(buoy->buoy = buoy_new()))
-    return ERROR_ECREAT;
-  return ATOM_OK;
+    return ASYNC(ERROR_ECREAT);
+  return ASYNC(ATOM_OK);
 }
 
 static ERL_NIF_TERM
@@ -216,10 +218,10 @@ ErlBuoy_copy_async(ErlBuoy *buoy, Message *msg) {
   ErlNifEnv *env = msg->env;
   ErlBuoy *orig;
   if (!enif_get_resource(env, msg->term, ErlBuoyType, (void **)&orig) || !orig->buoy)
-    return ERROR_BADARG;
+    return ASYNC(ERROR_BADARG);
   if (!(buoy->buoy = buoy_copy(orig->buoy)))
-    return ERROR_ECREAT;
-  return ATOM_OK;
+    return ASYNC(ERROR_ECREAT);
+  return ASYNC(ATOM_OK);
 }
 
 static ERL_NIF_TERM
@@ -232,17 +234,17 @@ ErlBuoy_open_async(ErlBuoy *buoy, Message *msg) {
       goto badarg;
     int fd = open(buf, O_RDONLY);
     if (fd < 0)
-      return enif_make_tuple2(env, ATOM_ERROR, enif_make_atom(env, errno_id(errno)));
+      return ASYNC(PAIR(ATOM_ERROR, enif_make_atom(env, errno_id(errno))));
     if (!(buoy->buoy = buoy_load(fd))) {
       close(fd);
-      return ERROR_ECREAT;
+      return ASYNC(ERROR_ECREAT);
     }
     close(fd);
-    return ATOM_OK;
+    return ASYNC(ATOM_OK);
   }
 
  badarg:
-  return ERROR_BADARG;
+  return ASYNC(ERROR_BADARG);
 }
 
 static ERL_NIF_TERM
@@ -255,17 +257,17 @@ ErlBuoy_save_async(ErlBuoy *buoy, Message *msg) {
       goto badarg;
     int fd = open(buf, O_WRONLY | O_CREAT, 0644);
     if (fd < 0)
-      return enif_make_tuple2(env, ATOM_ERROR, enif_make_atom(env, errno_id(errno)));
+      return ASYNC(PAIR(ATOM_ERROR, enif_make_atom(env, errno_id(errno))));
     if (!(buoy_dump(buoy->buoy, fd))) {
       close(fd);
-      return enif_make_tuple2(env, ATOM_ERROR, enif_make_atom(env, errno_id(errno)));
+      return ASYNC(PAIR(ATOM_ERROR, enif_make_atom(env, errno_id(errno))));
     }
     close(fd);
-    return ATOM_OK;
+    return ASYNC(ATOM_OK);
   }
 
  badarg:
-  return ERROR_BADARG;
+  return ASYNC(ERROR_BADARG);
 }
 
 static ERL_NIF_TERM
@@ -277,7 +279,7 @@ ErlBuoy_attrs_async(ErlBuoy *buoy, Message *msg) {
     if (attr->bytes)
       attrs = enif_make_list_cell(env, enif_make_resource_binary(env, buoy, attr->bytes, attr->length), attrs);
   }
-  return attrs;
+  return ASYNC(attrs);
 }
 
 static ERL_NIF_TERM
@@ -291,10 +293,10 @@ ErlBuoy_fetch_async(ErlBuoy *buoy, Message *msg) {
     goto badarg;
   attr.bytes = attrbin.data;
   attr.length = attrbin.size;
-  return enif_make_double(env, buoy_fetch(buoy->buoy, &attr));
+  return ASYNC(enif_make_double(env, buoy_fetch(buoy->buoy, &attr)));
 
  badarg:
-  return ERROR_BADARG;
+  return ASYNC(ERROR_BADARG);
 }
 
 static ERL_NIF_TERM
@@ -315,10 +317,10 @@ ErlBuoy_store_async(ErlBuoy *buoy, Message *msg) {
     goto badarg;
   attr.bytes = attrbin.data;
   attr.length = attrbin.size;
-  return enif_make_double(env, buoy_store(buoy->buoy, &attr, weight));
+  return ASYNC(enif_make_double(env, buoy_store(buoy->buoy, &attr, weight)));
 
  badarg:
-  return ERROR_BADARG;
+  return ASYNC(ERROR_BADARG);
 }
 
 static ERL_NIF_TERM
@@ -328,28 +330,28 @@ ErlBuoy_learn_async(ErlBuoy *buoy, Message *msg) {
   int arity;
   const ERL_NIF_TERM *args;
   if (!enif_get_tuple(env, msg->term, &arity, &args) || arity != 2)
-    return ERROR_BADARG;
+    return ASYNC(ERROR_BADARG);
 
   ERL_NIF_TERM feature, features = args[0];
   ErlNifBinary featbin;
   unsigned nattrs;
   if (!enif_get_list_length(env, args[0], &nattrs))
-    return ERROR_BADARG;
+    return ASYNC(ERROR_BADARG);
 
   Real score;
   if (!enif_get_double(env, args[1], &score))
-    return ERROR_BADARG;
+    return ASYNC(ERROR_BADARG);
 
   Size k = 0;
   Attr attrs[nattrs];
   Attr *attrp[nattrs];
   for (k = 0; enif_get_list_cell(env, features, &feature, &features); k++) {
     if (!enif_inspect_iolist_as_binary(env, feature, &featbin))
-      return ERROR_BADARG;
+      return ASYNC(ERROR_BADARG);
     attrs[k] = (Attr) {.bytes = featbin.data, .length = featbin.size};
     attrp[k] = &attrs[k];
   }
-  return enif_make_double(env, buoy_learn(buoy->buoy, attrp, nattrs, score));
+  return ASYNC(enif_make_double(env, buoy_learn(buoy->buoy, attrp, nattrs, score)));
 }
 
 static ERL_NIF_TERM
@@ -360,18 +362,18 @@ ErlBuoy_score_async(ErlBuoy *buoy, Message *msg) {
   ErlNifBinary featbin;
   unsigned nattrs;
   if (!enif_get_list_length(env, features, &nattrs))
-    return ERROR_BADARG;
+    return ASYNC(ERROR_BADARG);
 
   Size k;
   Attr attrs[nattrs];
   Attr *attrp[nattrs];
   for (k = 0; enif_get_list_cell(env, features, &feature, &features); k++) {
     if (!enif_inspect_iolist_as_binary(env, feature, &featbin))
-      return ERROR_BADARG;
+      return ASYNC(ERROR_BADARG);
     attrs[k] = (Attr) {.bytes = featbin.data, .length = featbin.size};
     attrp[k] = &attrs[k];
   }
-  return enif_make_double(env, buoy_score(buoy->buoy, attrp, nattrs));
+  return ASYNC(enif_make_double(env, buoy_score(buoy->buoy, attrp, nattrs)));
 }
 
 static void *
