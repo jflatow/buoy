@@ -107,7 +107,7 @@ train(_, {Lessons, _, _}, _) ->
 moor(Filename) ->
     Owner = self(),
     _Init = spawn_link(fun () -> Owner ! {buoy, buoy(Filename)} end),
-    Wait = fun () ->
+    Wait = fun (Wait) ->
                    receive
                        {buoy, Buoy} when is_binary(Buoy) ->
                            spawn_link(fun () -> moor(Buoy, Filename, none, []) end);
@@ -117,10 +117,10 @@ moor(Filename) ->
                            Error;
                        Else ->
                            self() ! Else,
-                           Wait()
+                           Wait(Wait)
                    end
            end,
-    Wait().
+    Wait(Wait).
 
 moor(Buoy, Filename, none, [{From, Args}|Pending]) ->
     Moor = self(),
