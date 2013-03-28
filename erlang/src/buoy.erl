@@ -9,7 +9,8 @@
          store/3,
          learn/3,
          score/2,
-         train/2]).
+         train/2,
+         pathos/2]).
 
 -export([moor/1]).
 
@@ -95,14 +96,20 @@ train(Buoy, {Lessons, Tolerance, MaxIter}, Iter) when Iter < MaxIter ->
                              Deltas + abs(learn(Buoy, Example, Score))
                      end, 0, shuffled(Lessons)) of
         Deltas when Deltas > ?MaxDelta ->
-            {error, Lessons};
+            {error, Buoy, Lessons};
         Deltas when Deltas > Tolerance ->
             train(Buoy, {Lessons, Tolerance, MaxIter}, Iter + 1);
         _ ->
             {ok, Buoy, Iter + 1}
     end;
-train(_, {Lessons, _, _}, _) ->
-    {error, Lessons}.
+train(Buoy, {Lessons, _, _}, _) ->
+    {error, Buoy, Lessons}.
+
+pathos(Buoy, Lessons) ->
+    lists:usort(
+      lists:foldl(fun ({Example, Score}, Acc) ->
+                          [{-abs(learn(Buoy, Example, Score)), {Example, Score}}|Acc]
+                  end, [], shuffled(Lessons))).
 
 moor(Filename) ->
     Owner = self(),
@@ -134,8 +141,8 @@ moor(Buoy, Filename, none, [{From, Args}|Pending]) ->
                                         Else ->
                                             Moor ! {error, From, self(), Copy, Else}
                                     end;
-                                {error, Lessons} ->
-                                    Moor ! {stuck, From, self(), Buoy, Lessons}
+                                {error, Copy, Lessons} ->
+                                    Moor ! {stuck, From, self(), Copy, pathos(Copy, Lessons)}
                             end
                     end),
          Pending);
@@ -150,8 +157,8 @@ moor(Buoy, Filename, Trainer, Pending) ->
         {ready, From, Trainer, NewBuoy, Iter} ->
             From ! {buoy_ready, NewBuoy, Iter},
             moor(NewBuoy, Filename, none, Pending);
-        {stuck, From, Trainer, Buoy, Lessons} ->
-            From ! {buoy_stuck, Buoy, Lessons},
+        {stuck, From, Trainer, BadBuoy, Pathos} ->
+            From ! {buoy_stuck, BadBuoy, Pathos},
             moor(Buoy, Filename, none, Pending);
         {train, From, Args} ->
             moor(Buoy, Filename, Trainer, [{From, Args}|Pending]);
