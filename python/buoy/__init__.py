@@ -31,6 +31,14 @@ class Buoy(_buoy.Buoy):
         for attr, weight in items:
             self[attr] = weight
 
+    def items(self):
+        for attr in self:
+            yield attr, self[attr]
+
+    def values(self):
+        for attr, weight in self.items():
+            yield weight
+
     def learn(self, attrs, score):
         delta = score - self.score(attrs)
         alpha = delta / len(attrs)
