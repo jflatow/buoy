@@ -54,7 +54,9 @@ Buoy *buoy_dump(Buoy *buoy, int fd) {
   Size magic = BUOY_MAGIC;
   if (write(fd, &magic, sizeof(magic)) < 0)
     return NULL;
-  if (write(fd, buoy, sizeof(Buoy)) < 0)
+  if (write(fd, &buoy->size, sizeof(Size)) < 0)
+    return NULL;
+  if (write(fd, &buoy->capacity, sizeof(Size)) < 0)
     return NULL;
 
   for (Size i = 0; i < buoy->capacity; i++) {
@@ -77,7 +79,9 @@ Buoy *buoy_load(int fd) {
   Size magic = 0;
   if (read(fd, &magic, sizeof(magic)) < 0 || magic != BUOY_MAGIC)
     goto eprem;
-  if (read(fd, buoy, sizeof(Buoy)) < 0)
+  if (read(fd, &buoy->size, sizeof(Size)) < 0)
+    goto eprem;
+  if (read(fd, &buoy->capacity, sizeof(Size)) < 0)
     goto eprem;
   if (buoy->capacity < 1)
     goto eprem;
