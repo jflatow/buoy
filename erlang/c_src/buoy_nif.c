@@ -12,7 +12,7 @@
 #define ATOM(Val) (enif_make_atom(env, Val))
 #define PAIR(A, B) (enif_make_tuple2(env, A, B))
 #define TERM_EQ(lhs, rhs) (enif_compare(lhs, rhs) == 0)
-#define ASYNC(R) (PAIR(ATOM_BUOY, R))
+#define ASYNC(R) (PAIR(ATOM_BUOY_, R))
 
 #define ATOM_OK                  ATOM("ok")
 #define ATOM_BADARG              ATOM("badarg")
@@ -21,7 +21,7 @@
 #define ATOM_ERROR               ATOM("error")
 #define ATOM_NO                  ATOM("no")
 
-#define ATOM_BUOY                ATOM("buoy")
+#define ATOM_BUOY_               ATOM("buoy_")
 #define ATOM_BUOY_NEW            ATOM("buoy_new")
 #define ATOM_BUOY_COPY           ATOM("buoy_copy")
 #define ATOM_BUOY_OPEN           ATOM("buoy_open")

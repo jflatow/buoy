@@ -26,9 +26,9 @@ str(Str) when is_list(Str) ->
 
 wait(Buoy) ->
     receive
-        {buoy, ok} ->
+        {buoy_, ok} ->
             Buoy;
-        {buoy, Reply} ->
+        {buoy_, Reply} ->
             Reply;
         Else ->
             self() ! Else,
