@@ -475,6 +475,9 @@ ErlBuoy_free(ErlNifEnv *env, void *res) {
   enif_thread_join(buoy->tid, NULL);
   enif_thread_opts_destroy(buoy->opts);
 
+  while (!queue_empty(buoy->msgs))
+    Message_free(queue_pop(buoy->msgs));
+
   queue_free(buoy->msgs);
 
   if (buoy->buoy)

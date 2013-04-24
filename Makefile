@@ -7,7 +7,8 @@ else
 	export CFLAGS = -O3 -std=c99
 endif
 
-REBAR = rebar
+REBAR  = rebar
+PYTHON = python
 
 .PHONY: erlang python
 
@@ -20,7 +21,7 @@ erlang:
 
 python: CMD = build
 python:
-	(cd python && python setup.py $(CMD))
+	(cd python && $(PYTHON) setup.py $(CMD))
 
 clean:
 	rm -rf `find . -name \*.o`
