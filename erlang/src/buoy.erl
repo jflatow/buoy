@@ -29,10 +29,7 @@ wait(Buoy) ->
         {buoy_, ok} ->
             Buoy;
         {buoy_, Reply} ->
-            Reply;
-        Else ->
-            self() ! Else,
-            wait(Buoy)
+            Reply
     end.
 
 init(Func, Args) ->
