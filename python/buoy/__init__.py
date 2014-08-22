@@ -24,7 +24,13 @@
 5.0
 """
 import os
+import random
 import _buoy
+
+class NoConvergence(Exception):
+    def __init__(self, buoy, lessons):
+        self.buoy = buoy
+        self.lessons = lessons
 
 class Buoy(_buoy.Buoy):
     def __init__(self, items=()):
@@ -48,6 +54,20 @@ class Buoy(_buoy.Buoy):
 
     def score(self, attrs):
         return sum(self[attr] for attr in attrs)
+
+    def train(self, lessons, tolerance=1e-6, maxiter=10000, maxdelta=1e300):
+        lessons = list(lessons)
+        for i in xrange(maxiter):
+            deltas = sum(abs(self.learn(*l)) for l in lessons)
+            if deltas < tolerance:
+                return deltas
+            if deltas > maxdelta:
+                raise NoConvergence(buoy, lessons)
+            random.shuffle(lessons)
+        raise NoConvergence(self, lessons)
+
+    def pathos(self, lessons):
+        return sorted((-abs(self.learn(*l)), l) for l in lessons)
 
     def save(self):
         self.dump(open(self.path, 'w'))
