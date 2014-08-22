@@ -69,8 +69,8 @@ class Buoy(_buoy.Buoy):
     def pathos(self, lessons):
         return sorted((-abs(self.learn(*l)), l) for l in lessons)
 
-    def save(self):
-        self.dump(open(self.path, 'w'))
+    def save(self, open=lambda p: open(p, 'w')):
+        self.dump(open(self.path))
 
     @classmethod
     def open(cls, path):
