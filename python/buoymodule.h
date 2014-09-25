@@ -30,6 +30,7 @@ static Py_ssize_t PyBuoy_length(PyBuoy *);
 static PyObject * PyBuoy_getitem(PyBuoy *, PyObject *);
 static int        PyBuoy_setitem(PyBuoy *, PyObject *, PyObject *);
 static PyObject * PyBuoy_keys(PyBuoy *);
+static PyObject * PyBuoy_dot(PyBuoy *, PyObject *);
 
 /* Serialization / Deserialization Informal Protocol */
 

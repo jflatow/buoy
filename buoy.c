@@ -148,16 +148,27 @@ Real buoy_store(Buoy *buoy, Attr *attr, Real weight) {
 }
 
 Real buoy_learn(Buoy *buoy, Attr **attrs, Size nattrs, Real score) {
-  double delta = score - buoy_score(buoy, attrs, nattrs);
-  double alpha = delta / nattrs;
+  Real delta = score - buoy_score(buoy, attrs, nattrs);
+  Real alpha = delta / nattrs;
   for (Size i = 0; i < nattrs; i++)
     buoy_store(buoy, attrs[i], buoy_fetch(buoy, attrs[i]) + alpha);
   return delta;
 }
 
 Real buoy_score(Buoy *buoy, Attr **attrs, Size nattrs) {
-  double score = 0;
+  Real score = 0;
   for (Size i = 0; i < nattrs; i++)
     score += buoy_fetch(buoy, attrs[i]);
   return score;
+}
+
+Real buoy_dot(Buoy *a, Buoy *b) {
+  Real ab = 0;
+  Buoy *s = a->capacity < b->capacity ? a : b, *t = s == a ? b : a;
+  for (Size i = 0; i < s->capacity; i++) {
+    Item item = s->items[i];
+    if (item.attr.bytes)
+      ab += buoy_fetch(t, &item.attr) * item.weight;
+  }
+  return ab;
 }

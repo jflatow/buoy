@@ -68,6 +68,8 @@ static PyMappingMethods PyBuoy_as_mapping = {
 static PyMethodDef PyBuoy_methods[] = {
   {"keys", (PyCFunction)PyBuoy_keys, METH_NOARGS,
    "d.keys() -> an iterator over the keys of d."},
+  {"dot", (PyCFunction)PyBuoy_dot, METH_VARARGS,
+   "d.dot(b) -> dot product of d and b."},
   {"dump", (PyCFunction)PyBuoy_dump, METH_O,
    "d.dump(o) -> write serialization of d to file object o."},
   {"load", (PyCFunction)PyBuoy_load, METH_CLASS | METH_O,
@@ -210,6 +212,15 @@ static PyObject *
 PyBuoy_keys(PyBuoy *self)
 {
   return PyBuoyIter_new(&PyBuoyIterType, self);
+}
+
+static PyObject *
+PyBuoy_dot(PyBuoy *self, PyObject *args)
+{
+  PyBuoy *other;
+  if (!PyArg_ParseTuple(args, "O!", &PyBuoyType, &other))
+    return NULL;
+  return PyFloat_FromDouble(buoy_dot(self->buoy, other->buoy));
 }
 
 /* Serialization / Deserialization Informal Protocol */

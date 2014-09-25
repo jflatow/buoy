@@ -31,6 +31,7 @@
 #define ATOM_BUOY_STORE          ATOM("buoy_store")
 #define ATOM_BUOY_LEARN          ATOM("buoy_learn")
 #define ATOM_BUOY_SCORE          ATOM("buoy_score")
+#define ATOM_BUOY_DOT            ATOM("buoy_dot")
 #define ATOM_DOXI_LEARN          ATOM("doxi_learn")
 #define ATOM_DOXI_SCORE          ATOM("doxi_score")
 #define ATOM_LEXI_LEARN          ATOM("lexi_learn")
@@ -376,6 +377,17 @@ ErlBuoy_score_async(ErlBuoy *buoy, Message *msg) {
   return ASYNC(enif_make_double(env, buoy_score(buoy->buoy, attrp, nattrs)));
 }
 
+static ERL_NIF_TERM
+ErlBuoy_dot_async(ErlBuoy *buoy, Message *msg) {
+  ErlNifEnv *env = msg->env;
+
+  ErlBuoy *other;
+  if (!enif_get_resource(env, msg->term, ErlBuoyType, (void **)&other))
+    return ASYNC(ERROR_BADARG);
+
+  return ASYNC(enif_make_double(env, buoy_dot(buoy->buoy, other->buoy)));
+}
+
 static void *
 ErlBuoy_run(void *arg) {
   ErlBuoy *buoy = (ErlBuoy *)arg;
@@ -449,6 +461,8 @@ ErlBuoy_call(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     queue_push(buoy->msgs, Message_new(env, &ErlBuoy_learn_async, argv[2]));
   else if (TERM_EQ(argv[1], ATOM_BUOY_SCORE))
     queue_push(buoy->msgs, Message_new(env, &ErlBuoy_score_async, argv[2]));
+  else if (TERM_EQ(argv[1], ATOM_BUOY_DOT))
+    queue_push(buoy->msgs, Message_new(env, &ErlBuoy_dot_async, argv[2]));
   else if (TERM_EQ(argv[1], ATOM_DOXI_LEARN))
     queue_push(buoy->msgs, Message_new(env, &ErlDoxi_learn_async, argv[2]));
   else if (TERM_EQ(argv[1], ATOM_DOXI_SCORE))

@@ -44,4 +44,6 @@ Real buoy_store(Buoy *buoy, Attr *attr, Real weight);
 Real buoy_learn(Buoy *buoy, Attr **attrs, Size nattrs, Real score);
 Real buoy_score(Buoy *buoy, Attr **attrs, Size nattrs);
 
+Real buoy_dot(Buoy *a, Buoy *b);
+
 #endif /* BUOY_H */

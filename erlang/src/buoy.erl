@@ -9,6 +9,7 @@
          store/3,
          learn/3,
          score/2,
+         dot/2,
          train/2,
          pathos/2]).
 
@@ -82,6 +83,9 @@ score(Buoy, {Doc, {Start, End}}) ->
     call(Buoy, lexi_score, {Doc, Start, End});
 score(Buoy, Doc) ->
     call(Buoy, doxi_score, Doc).
+
+dot(Buoy, Other) ->
+    call(Buoy, buoy_dot, Other).
 
 train(Buoy, Lessons) when is_list(Lessons) ->
     train(Buoy, {Lessons, 1.0e-8, 10000});

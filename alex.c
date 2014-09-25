@@ -121,6 +121,23 @@ int spin(int argc, char **argv) {
   return 0;
 }
 
+int norm(int argc, char **argv) {
+  int n = argc > 2 ? atoi(argv[2]) : 1000;
+  for (int k = 0; k < 1; k++) {
+    Buoy *buoy = buoy_new();
+
+    for (int i = 0; i < n; i++) {
+      Attr *attr[] = {&(Attr) {.bytes = (byte *) &i, .length = 8}};
+      double delta = buoy_learn(buoy, attr, 1, i);
+      double score = buoy_score(buoy, attr, 1);
+    }
+
+    printf("%d: %lf\n", n, buoy_dot(buoy, buoy));
+    buoy_free(buoy);
+  }
+  return 0;
+}
+
 int main(int argc, char **argv) {
   if (argc > 1) {
     if (strncmp(argv[1], "copy", 4) == 0)
@@ -135,6 +152,8 @@ int main(int argc, char **argv) {
       return doxi(argc, argv);
     if (strncmp(argv[1], "spin", 4) == 0)
       return spin(argc, argv);
+    if (strncmp(argv[1], "norm", 4) == 0)
+      return norm(argc, argv);
   }
-  return printf("usage: %s [copy|dump|load|lexi|doxi|spin]\n", argv[0]);
+  return printf("usage: %s [copy|dump|load|lexi|doxi|spin|norm]\n", argv[0]);
 }
